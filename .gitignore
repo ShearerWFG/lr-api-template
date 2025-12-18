@@ -1,0 +1,48 @@
+# LoadRunner Files
+*.lrr
+*.ci
+*.idx
+*.lrs
+*.usr
+*.cfg
+*.mmr
+*.xls
+*.xlsx
+output/
+result*/
+*.log
+*.bak
+*.tmp
+
+# Parameter Files with Sensitive Data
+# Uncomment if your .dat files contain credentials
+# *.dat
+
+# Compiled Files
+*.o
+*.so
+*.dll
+*.exe
+
+# IDE Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Credentials and Secrets
+*secret*
+*password*
+*credentials*
+.env
+.env.local
+
+# Personal Configuration
+local_config.c
+personal_*.c
