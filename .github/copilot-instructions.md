@@ -85,29 +85,86 @@ vuser_init()
 }
 ```
 
-#### 2. Action.c - Method Router
+#### 2. Action.c - API Function Lookup System
+
+**IMPORTANT**: Always implement the lookup table pattern with forward declarations. This allows dynamic API selection based on the `{api_name}` parameter.
+
 ```c
+// Forward declarations for GET API functions
+int GET_All_Users();
+int GET_User_By_ID();
+
+// Forward declarations for POST API functions
+int POST_Create_Post();
+int POST_Update_User();
+
+// Global variables
 int HttpRetCode;
+
+// Function pointer type definition
+typedef int (*ApiFunction)();
+
+// API function lookup table structure
+typedef struct {
+    char *name;
+    ApiFunction func;
+} ApiLookupEntry;
+
+// Lookup table for API functions
+ApiLookupEntry apiLookupTable[] = {
+    // GET APIs
+    {"GET_All_Users", GET_All_Users},
+    {"GET_User_By_ID", GET_User_By_ID},
+    
+    // POST APIs
+    {"POST_Create_Post", POST_Create_Post},
+    {"POST_Update_User", POST_Update_User},
+    
+    {NULL, NULL}  // Sentinel to mark end of table
+};
 
 Action()
 {
-    if (method == "POST"){
-        POST_Request();
+    int i;
+    char *apiName;
+    ApiFunction selectedFunc = NULL;
+    
+    apiName = lr_eval_string("{api_name}"); // The {api_name} parameter determines which API to execute
+    
+    // Search lookup table for matching API name
+    for (i = 0; apiLookupTable[i].name != NULL; i++) {
+        if (strcmp(apiName, apiLookupTable[i].name) == 0) {
+            selectedFunc = apiLookupTable[i].func;
+            break;
+        }
     }
-    else if(method == "GET"){
-        GET_Request();   
+    
+    // Execute the function if found
+    if (selectedFunc != NULL) {
+        selectedFunc();
     }
-    else{
-        lr_output_message("Invalid method type. Please use POST or GET.");
+    else {
+        lr_output_message("Invalid or unknown API name: %s", apiName);
     }
+    
     return 0;
 }
 ```
 
+**Key Points**:
+- Add forward declarations at the top for all API functions from both GET.c and POST.c files
+- Each API gets its own function (e.g., `GET_All_Users()`, `POST_Create_Post()`)
+- Function names in the lookup table must match exactly with the `{api_name}` parameter value
+- The lookup table enables data-driven testing where `{api_name}` can be parameterized
+- Comments in lookup table can include load distribution notes (e.g., `//25vu` for virtual user allocation)
+
 #### 3. Request Function Pattern (GET Example)
+
+**Function Naming**: Use descriptive names based on the API operation (e.g., `GET_All_Users()`, `GET_User_By_ID()`)
+
 ```c
-GET_Request(){
-    GET_Request:
+GET_All_Users(){
+    GET_All_Users:
     // Token expiration check
     if (time(NULL)<atol(lr_eval_string("{expires_in_epoch}"))) {
         
@@ -117,7 +174,7 @@ GET_Request(){
         web_add_header("Content-Type", "application/json");
        
         // Set transaction name
-        sprintf(buffer, "api_name");
+        sprintf(buffer, "GET_All_Users");
         
         // Start transaction
         lr_start_transaction(buffer);
@@ -126,7 +183,7 @@ GET_Request(){
         //web_reg_find("Text=\"expected response text\"", LAST);
         
         // Execute GET request
-        web_url("api_name_function",
+        web_url("GET_All_Users",
             "URL={host_name}{endpoint}",
             "Resource=0",
             "RecContentType=application/json",
@@ -153,7 +210,7 @@ GET_Request(){
     }
     else{
         GetPingToken();  // Refresh token
-        goto GET_Request;  // Retry request
+        goto GET_All_Users;  // Retry request
     }
     
     lr_think_time(pause);
@@ -162,9 +219,12 @@ GET_Request(){
 ```
 
 #### 4. Request Function Pattern (POST Example)
+
+**Function Naming**: Use descriptive names based on the API operation (e.g., `POST_Create_Post()`, `POST_Update_User()`)
+
 ```c
-POST_Request(){
-    POST_Request:
+POST_Create_Post(){
+    POST_Create_Post:
     // Token expiration check
     if (time(NULL)<atol(lr_eval_string("{expires_in_epoch}"))) {
         
@@ -174,7 +234,7 @@ POST_Request(){
         web_add_header("Content-Type", "application/json");
        
         // Set transaction name
-        sprintf(buffer, "api_name");
+        sprintf(buffer, "POST_Create_Post");
         
         // Start transaction
         lr_start_transaction(buffer);
@@ -183,7 +243,7 @@ POST_Request(){
         //web_reg_find("Text=\"expected response text\"", LAST);
         
         // Execute POST request with formatted JSON body
-        web_custom_request("api_name_function",
+        web_custom_request("POST_Create_Post",
             "URL={host_name}{endpoint}",
             "Method=POST",
             "Resource=0",
@@ -218,7 +278,7 @@ POST_Request(){
     }
     else{
         GetPingToken();
-        goto POST_Request;
+        goto POST_Create_Post;
     }
     
     lr_think_time(pause);
@@ -286,8 +346,10 @@ For each `item[]` in the collection:
 - [ ] Identify path variables → Replace `{{var}}` with `{var}`
 
 ### Phase 3: Implement LoadRunner Script
-- [ ] Create/update Action.c with method router
-- [ ] Implement request function(s) following the pattern
+- [ ] Add forward declarations for all API functions at the top of Action.c
+- [ ] Create API function lookup table with function pointers
+- [ ] Implement Action() with lookup table search logic
+- [ ] Implement request function(s) following the GET/POST patterns
 - [ ] Add proper transaction management (`lr_start_transaction`/`lr_end_transaction`)
 - [ ] Add token expiration check and refresh logic
 - [ ] Add HTTP return code validation
@@ -452,6 +514,8 @@ When processing a new Postman collection:
 10. Maintain consistent naming conventions
 11. Add token management and retry logic
 12. Follow the established patterns from existing template files
+13. **CRITICAL: Always implement the lookup table pattern with forward declarations**
+14. **Add all API functions to the lookup table in Action.c**
 
 ### JSON Body Formatting Guidelines
 

@@ -1,18 +1,57 @@
+// Forward declarations for GET API functions
+int GET_Request();
+
+// Forward declarations for POST API functions
+int POST_Request();
+
+// Global variables
 int HttpRetCode;
 
+// Function pointer type definition
+typedef int (*ApiFunction)();
+
+// API function lookup table structure
+typedef struct {
+    char *name;
+    ApiFunction func;
+} ApiLookupEntry;
+
+// Lookup table for API functions
+ApiLookupEntry apiLookupTable[] = {
+    // GET APIs
+    {"GET_Request", GET_Request},
+    
+    // POST APIs
+    {"POST_Request", POST_Request},
+    
+    {NULL, NULL}  // Sentinel to mark end of table
+};
 
 Action()
 {
-    if (method == "POST"){
-        POST_Request();
+    int i;
+    char *apiName;
+    ApiFunction selectedFunc = NULL;
+    
+    apiName = lr_eval_string("{api_name}"); // The method in which the {api_name} parameter is set will determine the test scenario
+    
+    // Search lookup table for matching API name
+    for (i = 0; apiLookupTable[i].name != NULL; i++) {
+        if (strcmp(apiName, apiLookupTable[i].name) == 0) {
+            selectedFunc = apiLookupTable[i].func;
+            break;
+        }
     }
-    else if(method == "GET"){
-        GET_Request();   
+    
+    // Execute the function if found
+    if (selectedFunc != NULL) {
+        selectedFunc();
     }
-    else{
-        lr_output_message("Invalid method type. Please use POST or GET.");
+    else {
+        lr_output_message("Invalid or unknown API name: %s", apiName);
     }
-	return 0;
+    
+    return 0;
 }
 
 POST_Request(){
