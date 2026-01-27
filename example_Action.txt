@@ -1,8 +1,10 @@
-// Forward declarations for GET API functions (from GET.c)
-int GET_Request();
-
-// Forward declarations for POST API functions (from POST.c)
-int POST_Request();
+// Forward declarations for GET.c functions
+int some_api1();
+int some_api2();
+int some_api3();
+int some_api4();
+int some_api5();
+int some_api6();
 
 // Global variables
 int HttpRetCode;
@@ -18,23 +20,24 @@ typedef struct {
 
 // Lookup table for API functions
 ApiLookupEntry apiLookupTable[] = {
-    // GET APIs
-    {"GET_Request", GET_Request},
-    
-    // POST APIs
-    {"POST_Request", POST_Request},
-    
+    {"some_api1", some_api1}, 						//25vu
+    {"some_api2", some_api2}, //1vu
+    {"some_api3", some_api3}, 							//3vu
+    {"some_api4", some_api4}, 							//3vu
+    {"some_api5", some_api5}, 							//3vu
+    {"some_api6", some_api6}, 						//3vu
     {NULL, NULL}  // Sentinel to mark end of table
 };
 
 Action()
 {
-    int i;
+    int i;	
+    int x;
     char *apiName;
-    ApiFunction selectedFunc = NULL;
+    ApiFunction selectedFunc = NULL;       
     
-    apiName = lr_eval_string("{api_name}"); // The method in which the {api_name} parameter is set will determine the test scenario
-    
+    apiName = lr_eval_string("{api_name}"); //The method in which the {api_name} parameter is set will determine the test scenario
+
     // Search lookup table for matching API name
     for (i = 0; apiLookupTable[i].name != NULL; i++) {
         if (strcmp(apiName, apiLookupTable[i].name) == 0) {

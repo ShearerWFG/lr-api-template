@@ -23,7 +23,9 @@ AI_api_template/
 │   └── copilot-instructions.md    # Comprehensive conversion guide
 ├── postman-collection/
 │   └── sample-api-collection.json # Example Postman collection
-├── Action.c                        # Main test logic with method routing
+├── Action.c                        # API function lookup table and routing
+├── GET.c                           # GET request implementations
+├── POST.c                          # POST request implementations
 ├── GetPingToken.c                  # Authentication and token management
 ├── vuser_init.c                    # Initialization and SSL setup
 ├── vuser_end.c                     # Cleanup operations
@@ -77,10 +79,26 @@ AI_api_template/
 
 ## 📖 Key Components
 
-### Action.c - Method Router
-Routes requests based on HTTP method type and implements request functions with:
+### Action.c - API Function Lookup Table
+Contains the routing logic and lookup table:
+- Forward declarations for all API functions
+- Function pointer lookup table
+- Dynamic API selection based on `{api_name}` parameter
+- Load distribution comments support
+
+### GET.c - GET Request Implementations
+All GET request functions with:
 - Token expiration checking
 - Header configuration
+- Transaction timing
+- HTTP status validation
+- Retry logic
+
+### POST.c - POST Request Implementations
+All POST request functions with:
+- Token expiration checking
+- Header configuration
+- Request body formatting
 - Transaction timing
 - HTTP status validation
 - Retry logic

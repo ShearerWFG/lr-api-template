@@ -64,7 +64,9 @@ This workspace serves as a template for converting Postman collections into Load
 
 ### File Organization
 - **vuser_init.c**: Initialization, SSL setup, initial authentication
-- **Action.c**: Main test logic with method routing and request functions
+- **Action.c**: API function lookup table and routing logic only
+- **GET.c**: All GET request function implementations
+- **POST.c**: All POST request function implementations
 - **GetPingToken.c**: Authentication/token management
 - **vuser_end.c**: Cleanup operations
 
@@ -87,14 +89,16 @@ vuser_init()
 
 #### 2. Action.c - API Function Lookup System
 
+**IMPORTANT**: Action.c contains ONLY the lookup table and routing logic. All GET functions are implemented in GET.c and all POST functions in POST.c.
+
 **IMPORTANT**: Always implement the lookup table pattern with forward declarations. This allows dynamic API selection based on the `{api_name}` parameter.
 
 ```c
-// Forward declarations for GET API functions
+// Forward declarations for GET API functions (from GET.c)
 int GET_All_Users();
 int GET_User_By_ID();
 
-// Forward declarations for POST API functions
+// Forward declarations for POST API functions (from POST.c)
 int POST_Create_Post();
 int POST_Update_User();
 
@@ -153,14 +157,19 @@ Action()
 
 **Key Points**:
 - Add forward declarations at the top for all API functions from both GET.c and POST.c files
-- Each API gets its own function (e.g., `GET_All_Users()`, `POST_Create_Post()`)
+- Action.c contains ONLY the lookup table and Action() function - no request implementations
+- Each API gets its own function (e.g., `GET_All_Users()`, `POST_Create_Post()`) in the appropriate file
+- All GET functions are implemented in GET.c
+- All POST functions are implemented in POST.c
 - Function names in the lookup table must match exactly with the `{api_name}` parameter value
 - The lookup table enables data-driven testing where `{api_name}` can be parameterized
 - Comments in lookup table can include load distribution notes (e.g., `//25vu` for virtual user allocation)
 
-#### 3. Request Function Pattern (GET Example)
+#### 3. GET.c - GET Request Functions
 
 **Function Naming**: Use descriptive names based on the API operation (e.g., `GET_All_Users()`, `GET_User_By_ID()`)
+
+**File Location**: All GET request implementations go in GET.c
 
 ```c
 GET_All_Users(){
@@ -218,9 +227,11 @@ GET_All_Users(){
 }
 ```
 
-#### 4. Request Function Pattern (POST Example)
+#### 4. POST.c - POST Request Functions
 
 **Function Naming**: Use descriptive names based on the API operation (e.g., `POST_Create_Post()`, `POST_Update_User()`)
+
+**File Location**: All POST request implementations go in POST.c
 
 ```c
 POST_Create_Post(){
@@ -346,10 +357,11 @@ For each `item[]` in the collection:
 - [ ] Identify path variables → Replace `{{var}}` with `{var}`
 
 ### Phase 3: Implement LoadRunner Script
-- [ ] Add forward declarations for all API functions at the top of Action.c
-- [ ] Create API function lookup table with function pointers
-- [ ] Implement Action() with lookup table search logic
-- [ ] Implement request function(s) following the GET/POST patterns
+- [ ] Add forward declarations for all API functions at the top of Action.c with file comments (from GET.c / from POST.c)
+- [ ] Create API function lookup table with function pointers in Action.c
+- [ ] Implement Action() with lookup table search logic in Action.c
+- [ ] Implement GET request functions in GET.c following the pattern
+- [ ] Implement POST request functions in POST.c following the pattern
 - [ ] Add proper transaction management (`lr_start_transaction`/`lr_end_transaction`)
 - [ ] Add token expiration check and refresh logic
 - [ ] Add HTTP return code validation
@@ -514,8 +526,10 @@ When processing a new Postman collection:
 10. Maintain consistent naming conventions
 11. Add token management and retry logic
 12. Follow the established patterns from existing template files
-13. **CRITICAL: Always implement the lookup table pattern with forward declarations**
+13. **CRITICAL: Always implement the lookup table pattern with forward declarations in Action.c**
 14. **Add all API functions to the lookup table in Action.c**
+15. **CRITICAL: Implement GET functions in GET.c file, POST functions in POST.c file**
+16. **Action.c contains ONLY the lookup table and routing - NO request implementations**
 
 ### JSON Body Formatting Guidelines
 
