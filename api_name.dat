@@ -1,0 +1,3 @@
+api_name,method
+POST_methodName,POST
+GET_methodName,GET
